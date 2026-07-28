@@ -149,14 +149,26 @@ class button_manager:
     @output.capture()  # debug
     def button_click(self, event):
         ''' maintains one-on state. If on-button is clicked, will process correctly '''
-        #new_status = self.button.get_status()
-        #new = [self.status[i] ^ new_status[i] for i in range(len(self.status))]
-        #newidx = new.index(True)
+        current_status = list(self.button.get_status())
+        new_active = None
+        for i, (old_val, new_val) in enumerate(zip(self.status, current_status)):
+            if new_val and not old_val:
+                new_active = i
+                break
+
+        if new_active is None:
+            new_active = self.status.index(True) if True in self.status else 0
+
         self.button.eventson = False
-        self.button.set_active(self.status.index(True))  #turn off old or reenable if same
+        for i in range(len(current_status)):
+            target = (i == new_active)
+            if self.button.get_status()[i] != target:
+                self.button.set_active(i)
         self.button.eventson = True
-        self.status = self.button.get_status()
-        self.call_on_click(self.status.index(True))
+
+        self.status = list(self.button.get_status())
+        if True in self.status:
+            self.call_on_click(self.status.index(True))
 
 class overfit_example():
     """ plot overfit example """
@@ -333,7 +345,7 @@ class overfit_example():
         self.X_mapped_scaled, self.X_mu, self.X_sigma  = zscore_normalize_features(self.X_mapped)
 
         #linear_model = LinearRegression()
-        linear_model = Ridge(alpha=self.lambda_, normalize=True, max_iter=10000)
+        linear_model = Ridge(alpha=self.lambda_, max_iter=10000)
         linear_model.fit(self.X_mapped_scaled, self.y )
         self.w = linear_model.coef_.reshape(-1,)
         self.b = linear_model.intercept_
@@ -356,7 +368,7 @@ class overfit_example():
         self.X_mapped, _ =  map_feature(self.X[:, 0], self.X[:, 1], self.degree)
         self.X_mapped_scaled, self.X_mu, self.X_sigma  = zscore_normalize_features(self.X_mapped)
         if not self.regularize or self.lambda_ == 0:
-            lr = LogisticRegression(penalty='none', max_iter=10000)
+            lr = LogisticRegression(penalty=None, max_iter=10000)
         else:
             C = 1/self.lambda_
             lr = LogisticRegression(C=C, max_iter=10000)
