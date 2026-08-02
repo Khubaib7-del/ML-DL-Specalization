@@ -201,3 +201,16 @@ def display_digit(X):
     # Display the image
     ax.imshow(X_reshaped, cmap='gray')
     plt.show()
+
+def plot_loss_tf(history):
+    fig, ax = plt.subplots(1,1, figsize=(4,3))
+    widgvis(fig)
+    ax.plot(history.history['loss'], label='loss', c=dlc["dlblue"])
+    ax.set_ylim([0, max(history.history['loss'])])
+    ax.set_xlabel('Epoch')
+    ax.set_ylabel('Loss (Cost)')
+    ax.legend()
+    fig.suptitle("Loss vs Epochs", fontsize=12)
+    fig.tight_layout(pad=0.2)
+    plt.show()
+
